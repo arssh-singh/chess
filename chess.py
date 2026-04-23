@@ -1,8 +1,10 @@
 import pygame
+from movement_check import *
+from king_logic import *
 
 pygame.init()
 screen_h = 750
-screen_w = 750
+screen_w = 1200
 screen = pygame.display.set_mode((screen_w, screen_h))
 pygame.display.set_caption("Drawing Shapes")
 
@@ -59,131 +61,34 @@ board[6][7] = Piece("pieces/black/pawn.png", "pawn", "black")
 
 
 running = True
-
 selected_piece = None
 selected_pos = None
-
-def check_pawn_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-    if piece.color == "white":
-        # checking if pawn is moving side ways
-        if row==old_row+1 and (col==old_col+1 or col==old_col-1):
-            # allowing movement if pawn has a piece to take
-            if board[row][col] is not None and board[row][col].color != "white":
-                return True
-            else:
-                return False
-
-        # declaring regular step of pawn
-        step = 1
-        # changing it to 2 only if pawn is on row 1 and has no piece on row 3
-        if old_row == 1 and board[old_row+2][col] is None:
-            step = 2
-        # allowing {step} movemnt is if pawn has nothing in front and not moving sideways 
-        if 1 <= row-old_row <= step and board[old_row+1][col] is None and col-old_col==0:
-            return True
-        return False
-
-    if piece.color == "black":
-        # checking if pawn is moving side ways
-        if row==old_row-1 and (col==old_col+1 or col==old_col-1):
-            # allowing movement if pawn has a piece to take
-            if board[row][col] is not None and board[row][col].color != "black":
-                return True
-            else:
-                return False
-
-        # declaring regular step of pawn
-        step = 1
-        # changing it to 2 only if pawn is on row 6 and has no piece on row 4
-        if old_row == 6 and board[old_row-2][col] is None:
-            step = 2
-        # allowing {step} movemnt is if pawn has nothing in front and not moving sideways 
-        if 1 <= old_row-row <= step and board[old_row-1][col] is None and col-old_col==0:
-            return True
-        return False
-
-def check_rook_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-
-    if old_row != row and old_col != col:
-        return False
-    
-    # moving vertically
-    if old_col == col:
-        step = 1 if row>old_row else -1
-        for box in range(old_row+step, row, step):
-            if board[box][col] is not None:
-                return False
-
-    # moving horizontally
-    elif old_row == row:
-        step = 1 if col>old_col else -1
-        for box in range(old_col+step, col, step):
-            if board[row][box] is not None:
-                return False
-
-    if board[row][col] is None or board[row][col].color != piece.color:
-        return True
-
-    return False
-
-def check_knight_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-
-    if (abs(row-old_row) == 2 and abs(col-old_col) == 1) or (abs(col-old_col) == 2 and abs(row-old_row) == 1):
-        return True
-    else: 
-        return False
-
-def check_bishop_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-
-    #yx
-    if row<old_row and col>old_col:
-        for coords in zip(range(old_row+1, row), range(old_col+1, col)):
-            y, x = coords
-            if board[y][x] != None:
-                return
-
-    if row>old_row and row-old_row == col-old_col:
-        return True
-    if row<old_row and old_row-row == old_col-col:
-        return True
-    if row<old_row and old_row-row == col-old_col:
-        return True
-    if row>old_row and row-old_row == old_col-col:
-        return True
-
-def check_queen_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-
-    return check_bishop_movement(old_pos, pos, piece) or check_rook_movement(old_pos, pos, piece)
-
-def check_king_movement(old_pos, pos, piece):
-    old_row, old_col = old_pos
-    row, col = pos
-
-
+color_to_move = "white"
+font = pygame.font.Font(None, 36)
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            # checking if king is in danger
+            king_pos=None
+            if color_to_move == "white":
+                king_pos = find_king(board, "white")
+            else:
+                king_pos = find_king(board, "black")
+            
+            # check_danger(king_pos, board)
+            
             mouse_x, mouse_y = pygame.mouse.get_pos()
 
             col = int((mouse_x-right)//box_size)
             row = int((mouse_y-top)//box_size)
 
+
             if 0 <= row < 8 and 0 <= col < 8:
                 if selected_piece is None:
-                    if board[row][col] is not None:
+                    if board[row][col] is not None and board[row][col].color == color_to_move:
                         selected_piece = board[row][col]
                         selected_pos = row, col
                 else:
@@ -193,22 +98,34 @@ while running:
                     else: 
                         movement = False
                         if selected_piece.type == "pawn":
-                            if check_pawn_movement((selected_pos), (row, col), selected_piece):
+                            check_pawn = check_pawn_movement(board, (selected_pos), (row, col), selected_piece)
+                            if check_pawn==True or check_pawn==False:
+                                allow_pawn=check_pawn
+                            else:
+                                val, p_row, p_col = check_pawn
+                                if val == True:
+                                    allow_pawn=True
+                                    board[p_row][p_col] = None
+                                    print(p_row, p_col)
+                                else:
+                                    allow_pawn=False
+
+                            if allow_pawn==True:
                                 movement = True
                         if selected_piece.type == "rook":
-                            if check_rook_movement((selected_pos), (row, col), selected_piece):
+                            if check_rook_movement(board, (selected_pos), (row, col), selected_piece):
                                 movement = True
                         if selected_piece.type == "knight":
                             if check_knight_movement((selected_pos), (row, col), selected_piece):
                                 movement = True
                         if selected_piece.type == "bishop":
-                            if check_bishop_movement((selected_pos), (row, col), selected_piece):
+                            if check_bishop_movement(board, (selected_pos), (row, col), selected_piece):
                                 movement = True 
                         if selected_piece.type == "queen":
-                            if check_queen_movement((selected_pos), (row, col), selected_piece):
+                            if check_queen_movement(board, (selected_pos), (row, col), selected_piece):
                                 movement = True  
                         if selected_piece.type == "king":
-                            if check_queen_movement((selected_pos), (row, col), selected_piece):
+                            if check_king_movement((selected_pos), (row, col), selected_piece):
                                 movement = True 
                         
                         if movement:
@@ -218,6 +135,11 @@ while running:
 
                             selected_piece = None
                             selected_pos = None
+                            if color_to_move == "white":
+                                color_to_move = "black"
+                            else:
+                                color_to_move = "white"
+
     
     screen.fill((121, 56, 27))
     for row in range(0,8):
@@ -240,6 +162,10 @@ while running:
     if selected_pos:
         sel_row, sel_col = selected_pos
         pygame.draw.rect(screen, (0,255,0), (right+sel_col*box_size, top+sel_row*box_size, box_size, box_size), 4)
+
+    text = font.render(f"Turn: {color_to_move.upper()}", True, (255, 255, 255))
+    screen.blit(text, ((right/2)-(text.get_width()/2), top))
+
 
     pygame.display.update()
 
