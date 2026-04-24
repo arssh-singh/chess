@@ -1,3 +1,4 @@
+
 def check_pawn_movement(board, old_pos, pos, piece):
     old_row, old_col = old_pos
     row, col = pos
@@ -99,6 +100,8 @@ def check_bishop_movement(board, old_pos, pos, piece):
 
     if board[row][col] is None or board[row][col].color != piece.color:
         return True
+    
+    return False
 
 def check_queen_movement(board, old_pos, pos, piece):
     old_row, old_col = old_pos
