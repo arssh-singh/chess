@@ -170,7 +170,7 @@ while running:
                             #setting old position of piece to none
                             board[old_row][old_col] = None
                             #putting piece on new positions
-                            board[row][col]=selected_piece
+                            board[row][col]=selected_piece                            
 
                             selected_piece = None
                             old_pos = None
