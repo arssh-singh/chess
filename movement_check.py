@@ -6,6 +6,7 @@ def check_pawn_movement(board, old_pos, pos, piece):
     direction = 1 if piece.color == "white" else -1
     start_row = 1 if piece.color == "white" else 6
     pasant_row = 4 if piece.color == "white" else 3
+    pasant_target = 6 if piece.color == "white" else 1
 
     if col == old_col:
         #allowing 1 step movement
@@ -19,15 +20,14 @@ def check_pawn_movement(board, old_pos, pos, piece):
         return False
 
     if old_row == pasant_row and abs(col - old_col) == 1 and row == old_row + direction and board[row][col] is None:
-
         if col < old_col:
             target = board[old_row][old_col - 1]
-            if target and target.type == "pawn" and target.color != piece.color:
+            if target and target.type == "pawn" and target.color != piece.color and target.last_pos[0]==pasant_target:
                 return (True, old_row, old_col - 1)
 
         else:
             target = board[old_row][old_col + 1]
-            if target and target.type == "pawn" and target.color != piece.color:
+            if target and target.type == "pawn" and target.color != piece.color and target.last_pos[0]==pasant_target:
                 return (True, old_row, old_col + 1)
 
         return False
@@ -109,11 +109,48 @@ def check_queen_movement(board, old_pos, pos, piece):
 
     return check_bishop_movement(board, old_pos, pos, piece) or check_rook_movement(board, old_pos, pos, piece)
 
-def check_king_movement(old_pos, pos, piece):
+def check_king_movement(board, old_pos, pos, piece):
     old_row, old_col = old_pos
     row, col = pos
 
     row_diff = abs(old_row - row)
     col_diff = abs(old_col - col)
 
-    return (row_diff <= 1 and col_diff <= 1) and (row_diff + col_diff != 0)
+    # Normal king move
+    if (row_diff <= 1 and col_diff <= 1) and (row_diff + col_diff != 0):
+        return True
+
+    # Castling
+    if col_diff == 2 and row == old_row:
+        direction = 1 if col > old_col else -1
+
+        rook_col = 7 if direction == 1 else 0
+        rook = board[old_row][rook_col]
+
+        if rook is None:
+            return False
+
+        if rook.color != piece.color:
+            return False
+
+        if piece.moved or rook.moved:
+            return False
+
+        # Kingside
+        if direction == -1:
+            if board[old_row][1] is None and board[old_row][2] is None:
+                print("castle")
+                return True
+
+        # Queenside
+        else:
+            if (
+                board[old_row][4] is None and
+                board[old_row][5] is None and
+                board[old_row][6] is None
+            ):
+                print("castle")
+                return True
+
+    return False
+            

@@ -23,7 +23,7 @@ def can_attack_square(board, old_pos, target_pos, piece):
         return check_knight_movement(old_pos, target_pos, piece)
 
     if piece.type == "king":
-        return check_king_movement(old_pos, target_pos, piece)
+        return check_king_movement(board, old_pos, target_pos, piece)
 
     return False
 
