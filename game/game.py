@@ -7,12 +7,13 @@ class Game:
         self.board = Board()
         self.turn = "white"
         self.selected_piece = None
-        self.old_pos = None
+        self.sel_pos = None
         self.last_move = None
+        self.box_size = 87
     
-    def is_valid_move(self, selected_piece, old_pos, row, col):
-        if selected_piece.type == "pawn":
-            check_pawn = check_pawn_movement(self.board.grid, (old_pos), (row, col), selected_piece)
+    def is_valid_move(self, row, col):
+        if self.selected_piece.type == "pawn":
+            check_pawn = check_pawn_movement(self.board.grid, (self.sel_pos), (row, col), self.selected_piece)
             if check_pawn==True or check_pawn==False:
                 allow_pawn=check_pawn
             else:
@@ -26,16 +27,16 @@ class Game:
 
             if allow_pawn==True:
                 return True
-        if selected_piece.type == "rook":
-            return check_rook_movement(self.board.grid, (old_pos), (row, col), selected_piece)
-        if selected_piece.type == "knight":
-            return check_knight_movement((old_pos), (row, col), selected_piece)                                
-        if selected_piece.type == "bishop":
-            return check_bishop_movement(self.board.grid, (old_pos), (row, col), selected_piece)                                    
-        if selected_piece.type == "queen":
-            return check_queen_movement(self.board.grid, (old_pos), (row, col), selected_piece)                                    
-        if selected_piece.type == "king":
-            return check_king_movement(self.board.grid, (old_pos), (row, col), selected_piece)
+        if self.selected_piece.type == "rook":
+            return check_rook_movement(self.board.grid, (self.sel_pos), (row, col), self.selected_piece)
+        if self.selected_piece.type == "knight":
+            return check_knight_movement((self.sel_pos), (row, col), self.selected_piece)                                
+        if self.selected_piece.type == "bishop":
+            return check_bishop_movement(self.board.grid, (self.sel_pos), (row, col), self.selected_piece)                                    
+        if self.selected_piece.type == "queen":
+            return check_queen_movement(self.board.grid, (self.sel_pos), (row, col), self.selected_piece)                                    
+        if self.selected_piece.type == "king":
+            return check_king_movement(self.board.grid, (self.sel_pos), (row, col), self.selected_piece)
     
     def change_turn(self):
         if self.turn == "white":
@@ -43,7 +44,7 @@ class Game:
         else:
             self.turn = "white"
     
-    def simulate_move(self, selected_piece, old_pos, row, col):
+    def simulate_move(self, old_pos, row, col):
         board_copy = [row[:] for row in self.board.grid]
         old_row, old_col = old_pos
         piece = self.board.grid[old_row][old_col]
@@ -52,12 +53,12 @@ class Game:
 
         return board_copy
     
-    def is_legal_move(self, selected_piece, old_pos, row, col):
+    def is_legal_move(self, row, col):
         #simulating move
-        test_board = self.simulate_move(selected_piece, old_pos, row, col)
-        king_pos = find_king(test_board, selected_piece.color)
+        test_board = self.simulate_move(self.sel_pos, row, col)
+        king_pos = find_king(test_board, self.selected_piece.color)
 
-        if not is_king_safe(test_board, king_pos, selected_piece.color):
+        if not is_king_safe(test_board, king_pos, self.selected_piece.color):
             print("Danger To King")
             return False
         

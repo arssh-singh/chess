@@ -24,8 +24,8 @@ def drawselection(screen, right, top, box_size, sel_pos):
      row, col = sel_pos
      pygame.draw.rect(screen, (0, 255, 0), (right+col*box_size, top+row*box_size, box_size, box_size), 6)
 
-def draw(screen, chess, right, top, box_size, sel_pos):
-     drawboard(screen, right, top, box_size)
-     drawpieces(screen, chess, right, top, box_size)
-     drawselection(screen, right, top, box_size, sel_pos)
+def draw(screen, chess, right, top):
+     drawboard(screen, right, top, chess.box_size)
+     drawpieces(screen, chess, right, top, chess.box_size)
+     drawselection(screen, right, top, chess.box_size, chess.sel_pos)
     
