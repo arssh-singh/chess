@@ -69,7 +69,7 @@ class Game:
     def simulate_move(self, selected_piece, old_pos, row, col):
         board_copy = [row[:] for row in self.board]
         old_row, old_col = old_pos
-        piece = board[old_row][old_col]
+        piece = self.board[old_row][old_col]
         board_copy[old_row][old_col] = None
         board_copy[row][col] = piece
 
@@ -86,6 +86,11 @@ class Game:
         
         return True
         
+    def is_check(self):
+        king_pos = find_king(self.board, self.turn)
+        if is_king_safe(self.board, king_pos, self.turn):
+            return
+
 
 # placing white pieces on board
 board[0][0] = Piece("pieces/rook.png", "rook", "white")
@@ -177,6 +182,9 @@ while running:
 
                             #changing turn                            
                             chess.change_turn()
+
+                            if chess.is_checkmate():
+                                print(f"CHECKMATE! {chess.turn} loses.")
 
     
     #filling background with color
